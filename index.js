@@ -1,53 +1,20 @@
-const path = require('path');
-const os = require('os');
-const fs = require('fs-extra')
-const chokidar = require('chokidar');
-const {checkDuplicate} = require("./services/duplicateDetection");
-const {logMetaData} = require("./middleware/logger");
-const { generateFileHash } = require('./middleware/hashGenerator');
+const express = require('express');
+const cors = require('cors');
+const Router = require('./routes/routes.index')
+const {watchMan,downloadsDir} = require("./services/fileWatcherService")
 
-//defining the downloads directory
-const downloadsDir = path.join(os.homedir(),'Downloads');
+//setup express server
+const PORT = 8003;
+const app = express();
 
-//setup watcher
-const watcher = chokidar.watch(downloadsDir,{
-    persistent:true,
-    ignoreInitial:true,
-});
+//middlewares
+app.use(express.json());
+app.use(cors());
 
-//watcher events
-watcher.on('add',(filePath)=>{
-    //filepath will be automatically send as prop by chokidar library containing details about file.
+//routes
+app.use("/",Router)
 
-    const filename = path.basename(filePath);
-    try {
-        //ignoring temp files created at download process
-        if ( filename.endsWith('.tmp') || 
-        filename.endsWith('.crdownload') || 
-        filename.endsWith('.part') || 
-        filename.endsWith('.download') ||
-        filename.startsWith('~') || 
-        filename.startsWith('.') ||
-        filename.startsWith('~$') ||
-        filename.endsWith('.lock')) {
-            return;
-        }
+//services
+watchMan()
 
-    const hash = generateFileHash(filePath);
-    if(checkDuplicate(hash)){
-        console.log(`Duplicate file detected ${filename}`)
-        // we can delete file if we want using fs.unlink(filepath)
-        setTimeout(()=>{fs.unlink(filePath); },500)
-             
-    } 
-    else{
-         logMetaData(filePath);
-         console.log(`logged file: ${filename}`)
-    }
-    }
-    catch (error) {
-        console.log("Something went wrong")
-        console.log(error);
-    }
-
-});
+app.listen(PORT,()=>{console.log(`Server started at Port ${PORT}`)})

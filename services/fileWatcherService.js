@@ -36,9 +36,9 @@ watcher.on('add',(filePath)=>{
 
     const hash = generateFileHash(filePath);
     if(checkDuplicate(hash)){
-        console.log(`Duplicate file detected ${filename}`)
+        console.log(`Duplicate file deleted ${filename}`)
         // we can delete file if we want using fs.unlink(filepath)
-        setTimeout(()=>{fs.unlink(filePath); },100)
+        setTimeout(()=>{fs.unlink(filePath); },500)
              
     } 
     else{

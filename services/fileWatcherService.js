@@ -2,7 +2,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs-extra');
 const chokidar = require('chokidar');
-const {checkDuplicate} = require("./duplicateDetection");
+const {checkDuplicate, removeLog} = require("./duplicateDetection");
 const {logMetaData} = require("../middleware/logger");
 const { generateFileHash } = require('../middleware/hashGenerator');
 
@@ -43,7 +43,7 @@ watcher.on('add',(filePath)=>{
     } 
     else{
          logMetaData(filePath);
-         console.log(`index.js- logged file: ${filename}`)
+         console.log(`logged file: ${filename}`)
     }
     }
     catch (error) {
@@ -52,6 +52,30 @@ watcher.on('add',(filePath)=>{
     }
 
 })
+
+watcher.on('unlink',(fileData)=>{
+    
+    try {
+        const filename = path.basename(fileData);
+
+         //ignoring temp files created at download process
+         if ( filename.endsWith('.tmp') || 
+         filename.endsWith('.crdownload') || 
+         filename.endsWith('.part') || 
+         filename.endsWith('.download') ||
+         filename.startsWith('~') || 
+         filename.startsWith('.') ||
+         filename.startsWith('~$') ||
+         filename.endsWith('.lock')) {
+             return;
+         }
+    removeLog(filename);
+    } catch (error) {
+        console.log("error occured while removing log")
+    }
+  
+})
+
 console.log(`Watchman has started watching the directory ${downloadsDir}`)
 };
 

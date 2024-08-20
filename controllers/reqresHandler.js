@@ -6,7 +6,6 @@ const logFile = path.join(__dirname,'../log.json')
 
 async function reqHandler(req,res){
  //checking on the basis of name and size
- console.log("Req recieved in handler")
  if(!fs.existsSync(logFile)){
     return res.json({msg:"Record file is missing"});
  }

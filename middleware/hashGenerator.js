@@ -1,10 +1,9 @@
 const crypto = require('crypto');
 const fs = require('fs-extra');
 
-
 function generateFileHash(filePath, retryCount = 5, delay = 500){
     try {
-    const fileBuffer = fs.readFileSync(filePath);
+    const fileBuffer =  fs.readFileSync(filePath);
     const hashSum = crypto.createHash('sha256');
     hashSum.update(fileBuffer);
     return hashSum.digest('hex');

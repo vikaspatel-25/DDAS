@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const {generateFileHash} = require("./hashGenerator")
+const {generateFileHash} = require("../services/hashGenerator")
 
 const logFile = path.join(__dirname,'../log.json')
 const { json } = require('stream/consumers');

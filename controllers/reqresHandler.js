@@ -1,6 +1,7 @@
 require("body-parser");
 const fs = require('fs-extra')
 const path = require('path');
+const { webSocketConnections } = require("../routes/webSocket");
 const logFile = path.join(__dirname,'../log.json')
 
 
@@ -33,6 +34,7 @@ async function reqHandler(req,res){
 
      if(searchResult){
         console.log("Duplicate file found at:", searchResult.path);
+        webSocketConnections.sendMessage(searchResult.path)
         return res.json({exist:searchResult});
      }
      if(!searchResult){

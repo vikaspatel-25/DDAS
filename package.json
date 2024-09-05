@@ -2,9 +2,9 @@
   "name": "ddas",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node index"
+    "start": "electron ."
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +16,9 @@
     "express": "^4.19.2",
     "fs-extra": "^11.2.0",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "electron": "^32.0.1",
+    "electron-packager": "^17.1.2"
   }
 }

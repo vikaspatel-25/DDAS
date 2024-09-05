@@ -17,6 +17,10 @@ function webSocketConnections(io) {
             watchMan(data, socket);
         });
 
+        function sendMessage(filePath){
+            socket.emit('ownerCheck', { filePath, matched: true });
+        }
+        webSocketConnections.sendMessage = sendMessage;
         // Handle disconnections
         socket.on('disconnect', () => {
             console.log('User disconnected',socket.id);

@@ -1,27 +1,27 @@
 const path = require('path');
-const os = require('os');
-const fs = require('fs-extra');
 const chokidar = require('chokidar');
 const { checkDuplicate, removeLog } = require("./duplicateDetection");
 const { logMetaData } = require("../middleware/logger");
 const { generateFileHash } = require('./hashGenerator');
 const { checkOwner } = require("./checkOwner");
 
-// Defining the downloads directory
 async function watchMan(data, socket) {
     // Setup watcher
     const watcher = chokidar.watch(data.path, {
-        ignored: /(^|[\/\\])\../,
+        ignored: [
+            /(^|[\/\\])\../, // Hidden files and directories
+            /\.tmp$/, /\.crdownload$/, /\.part$/, /\.download$/, /\.swp$/, /\.swo$/, /\.bak$/, /\.old$/, /\.log$/, // Temporary files
+            /^~$/, // Temporary files with tilde
+            /(^|[\/\\])(Program Files|Program Files \(x86\)|Windows|System32|AppData|Local Settings|Temp|System Volume Information|Documents and Settings)/i, // System directories
+        ],
         persistent: true,
         ignoreInitial: true,
     });
 
     // Watcher events
     watcher.on('add', async (filePath) => {
-        // Filepath will be automatically sent as prop by chokidar library containing details about the file.
         const filename = path.basename(filePath);
         try {
-            // Ignoring temp files created during the download process
             if (filename.endsWith('.tmp') ||
                 filename.endsWith('.crdownload') ||
                 filename.endsWith('.part') ||
@@ -36,26 +36,19 @@ async function watchMan(data, socket) {
             const hash = generateFileHash(filePath);
             if (checkDuplicate(hash)) {
                 const ownerMatches = await checkOwner(filePath, data.username);
-                if (ownerMatches) {
-                    socket.emit('ownerCheck', { filePath, matched: true });
-                } else {
-                    socket.emit('ownerCheck', { filePath, matched: false });
-                }
+                socket.emit('ownerCheck', { filePath, matched: ownerMatches });
             } else {
                 logMetaData(filePath);
                 console.log(`Logged file: ${filename}`);
             }
         } catch (error) {
-            console.log("Something went wrong");
-            console.log(error);
+            console.log("Error handling added file:", error);
         }
     });
 
     watcher.on('unlink', (fileData) => {
         try {
             const filename = path.basename(fileData);
-
-            // Ignoring temp files created during the download process
             if (filename.endsWith('.tmp') ||
                 filename.endsWith('.crdownload') ||
                 filename.endsWith('.part') ||
@@ -68,8 +61,16 @@ async function watchMan(data, socket) {
             }
             removeLog(filename);
         } catch (error) {
-            console.log("Error occurred while removing log");
-            console.log(error);
+            console.log("Error occurred while removing log:", error);
+        }
+    });
+
+    // Handle errors from the watcher
+    watcher.on('error', (error) => {
+        if (error.code === 'EPERM') {
+            console.log("Permission error, ignoring file:", error.path);
+        } else {
+            console.log("Watcher error:", error);
         }
     });
 

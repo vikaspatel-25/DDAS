@@ -6,7 +6,7 @@ const { generateFileHash } = require('./hashGenerator');
 const { checkOwner } = require("./checkOwner");
 
 async function watchMan(data, socket) {
-    // Setup watcher
+    // Seting up  watcher
     const watcher = chokidar.watch(data.path, {
         ignored: [
             /(^|[\/\\])\../, // Hidden files and directories
@@ -33,12 +33,12 @@ async function watchMan(data, socket) {
                 return;
             }
 
-            const hash = generateFileHash(filePath);
+            const hash = await generateFileHash(filePath);
             if (checkDuplicate(hash)) {
                 const ownerMatches = await checkOwner(filePath, data.username);
                 socket.emit('ownerCheck', { filePath, matched: ownerMatches });
             } else {
-                logMetaData(filePath);
+                logMetaData(filePath,hash);
                 console.log(`Logged file: ${filename}`);
             }
         } catch (error) {
@@ -64,6 +64,33 @@ async function watchMan(data, socket) {
             console.log("Error occurred while removing log:", error);
         }
     });
+
+    watcher.on('rename', async (oldPath, newPath) => {
+        try {
+            const oldFilename = path.basename(oldPath);
+            const newFilename = path.basename(newPath);
+    
+            if (fileMap.has(oldFilename)) {
+                console.log(`File renamed from ${oldFilename} to ${newFilename}`);
+                fileMap.delete(oldFilename);
+                fileMap.set(newFilename, newPath);
+    
+                const hash = await generateFileHash(newPath);
+                console.log(`File renamed and hash recalculated: ${newFilename}, Hash: ${hash}`);
+    
+                if (checkDuplicate(hash)) {
+                    const ownerMatches = await checkOwner(newPath, data.username);
+                    socket.emit('ownerCheck', { filePath: newPath, matched: ownerMatches });
+                } else {
+                    logMetaData(newPath, hash);
+                    console.log(`Logged renamed file: ${newFilename}`);
+                }
+            }
+        } catch (error) {
+            console.log("Error handling renamed file:", error);
+        }
+    });
+    
 
     // Handle errors from the watcher
     watcher.on('error', (error) => {

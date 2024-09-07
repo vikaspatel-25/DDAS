@@ -14,9 +14,8 @@ function normalizeFilename(filename) {
 }
 
 
-function logMetaData(filePath){
+function logMetaData(filePath,hash){
    const stats = fs.statSync(filePath);
-   const hash = generateFileHash(filePath);
    const metadata = {
     filename: path.basename(filePath),
     trimmedFilename: normalizeFilename(path.basename(filePath)),

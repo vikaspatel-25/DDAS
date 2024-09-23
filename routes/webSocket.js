@@ -9,16 +9,18 @@ function webSocketConnections(io) {
 
         // Handle messages from the client
         socket.on('message', (data) => {
-            if (Array.isArray(data.path) && data.path.length === 0) {
+            if (Array.isArray(data.path) && data.path.length === 0 ) {
                 let downloadDir = path.join(os.homedir(), 'Downloads');
                 data.path = [downloadDir];
+                watchMan(data, socket);
             }
-            // Starting watchman with given paths by client and passing the socket
-            watchMan(data, socket);
+            else{
+                watchMan(data, socket);
+            }
         });
 
-        function sendMessage(filePath){
-            socket.emit('ownerCheck', { filePath, matched: true });
+        function sendMessage(filePath,flag){
+            socket.emit('ownerCheck', { filePath, matched: true,flag });
         }
         webSocketConnections.sendMessage = sendMessage;
         // Handle disconnections

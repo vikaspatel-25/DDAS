@@ -9,7 +9,8 @@ function checkDuplicate(hash){
        return false;
     }
     const logFileData = JSON.parse(fs.readFileSync(logFile));
-    return logFileData.find((element) =>{ return element.hash == hash});
+    const searchResult = logFileData.find((element) =>{ return element.hash == hash});
+    return searchResult;
 }
 
 //function to remove log

@@ -34,7 +34,8 @@ async function reqHandler(req,res){
 
      if(searchResult){
         console.log("Duplicate file found at:", searchResult.path);
-        webSocketConnections.sendMessage(searchResult.path)
+        let flag = true;
+        webSocketConnections.sendMessage(searchResult,flag)
         return res.json({exist:searchResult});
      }
      if(!searchResult){

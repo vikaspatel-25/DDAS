@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const fs = require('fs-extra');
 
 async function generateFileHash(filePath, retryCount = 500, delay = 500) {
-    console.log(`Starting hash generation for file: ${filePath}`);
 
     return new Promise((resolve, reject) => {
         const hashSum = crypto.createHash('sha256');

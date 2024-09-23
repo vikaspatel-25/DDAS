@@ -34,9 +34,15 @@ async function watchMan(data, socket) {
             }
 
             const hash = await generateFileHash(filePath);
-            if (checkDuplicate(hash)) {
+            const searchResult = checkDuplicate(hash);
+            if (searchResult) {
                 const ownerMatches = await checkOwner(filePath, data.username);
-                socket.emit('ownerCheck', { filePath, matched: ownerMatches });
+                searchResult.matched = ownerMatches;
+                searchResult.flag = false;
+                if(ownerMatches){
+                    console.log(`Duplicate file found at ${searchResult.path}`)
+                    socket.emit('ownerCheck',  searchResult );
+                }
             } else {
                 logMetaData(filePath,hash);
                 console.log(`Logged file: ${filename}`);
@@ -78,13 +84,13 @@ async function watchMan(data, socket) {
                 const hash = await generateFileHash(newPath);
                 console.log(`File renamed and hash recalculated: ${newFilename}, Hash: ${hash}`);
     
-                if (checkDuplicate(hash)) {
-                    const ownerMatches = await checkOwner(newPath, data.username);
-                    socket.emit('ownerCheck', { filePath: newPath, matched: ownerMatches });
-                } else {
-                    logMetaData(newPath, hash);
-                    console.log(`Logged renamed file: ${newFilename}`);
-                }
+                // if (checkDuplicate(hash)) {
+                //     const ownerMatches = await checkOwner(newPath, data.username);
+                //     socket.emit('ownerCheck', { filePath: newPath, matched: ownerMatches });
+                // } else {
+                //     logMetaData(newPath, hash);
+                //     console.log(`Logged renamed file: ${newFilename}`);
+                // }
             }
         } catch (error) {
             console.log("Error handling renamed file:", error);
